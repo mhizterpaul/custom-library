@@ -18,8 +18,11 @@ The application provides a 'library' Interface which provides the custom functio
 
 * templatingEngine: 
 
- To use this functionality you have to call library's templating engine with two parameters if the starting and ending delimeters are the same string or three parameters if the starting and ending delimeters are dissimilar. The first parameter is the string you want to use as a template, string must contain starting and ending delimeters for variable content(s) or the string will be returned, the string must also not contain any starting and ending delimeters in it's static body, due to how to engine works. The templating engine returns a function which you can call with data and an optional number that indicate how many times it should be logged to the console.
- Example: library.templatingEngine('my name is |name|, I am |height|meters tall', '|')('paul', 152, 2); 
+ To use this functionality you have to call library's templating engine with two parameters. The first parameter is the string you want to use as a template, string must contain starting and ending delimeters for variable content(s) or the string will be returned, the string must also not contain any starting and ending delimeters in it's static body, due to how the engine works. The templating engine returns a function which you can call with data and an optional number that indicate how many times it should be logged to the console. The second parameter is a configuration object with start and stop properties that point to the start and stop delimiter string, if the configuration object only contains a start delimiter, the start delimiter is used as stop delimiter. If no configuration object is passed  then the default delimiter ('|') is used.
+ Example: 
+ ```javascript
+ library.templatingEngine('my name is |name|, I am |height|meters tall', {start: '|'})('paul', 152, 2);
+``` 
 
  ```javascript
  library.templatingEngine(`<td><a href="#detail/<%= menuItem.id %>"><%= menuItem.name %></a></td>
@@ -27,7 +30,7 @@ The application provides a 'library' Interface which provides the custom functio
     <td><%= menuItem.calories %></td>
     <td>
       <button class="select-item">Select Item</button>
-    </td>`,'<%=', '%>')({id: 1, name: 'paul', rating: 2, calories: 5}, 5);
+    </td>`, {start: '<%=', stop: '%>'})({id: 1, name: 'paul', rating: 2, calories: 5}, 5);
 ```
 
 * eventTracker

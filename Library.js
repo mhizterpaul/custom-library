@@ -7,11 +7,10 @@
 (function(){
 
 //Templating Engine
-const templatingEngine = (string, startDelim = '|', endDelim) => {
-	//check to make sure that the arguments are strings
-	if(typeof(string) !== 'string' || typeof(startDelim) !== 'string' || typeof(endDelim) !== 'string' && endDelim){
-		console.log('please enter a string with either the default delimeters or any custom delimeters \
-			and pass delimeter strings as arguments');
+const templatingEngine = (string, {start = '|', stop: stop} = {}) => {
+	//check to make sure that the arguments are in the required format
+	if(typeof(string) !== 'string' || typeof(start) !== 'string' || typeof(stop) !== 'string' && stop){
+		console.log(`please enter the required format in the configuration object`);
 		return;
 	}
 
@@ -22,7 +21,7 @@ const templatingEngine = (string, startDelim = '|', endDelim) => {
 	//loop through string and retrieve the index number of starting delimeters
 	//and ending delimeters iff both deleimeters are the same
 	for(let i = 0; i <= string.length-1; i++ ){
-		const match = string.indexOf(startDelim, i);
+		const match = string.indexOf(start, i);
 		if(match === -1 ) break;
 		matches.push(match);
 		i = match + 1;
@@ -31,15 +30,15 @@ const templatingEngine = (string, startDelim = '|', endDelim) => {
 	//if no match was found return the string in a new function
 	if(matches.length === 0) return new Function(`num`, `for(let i = 1; i <= num; i++ )
 	{
-		console.log('${string}');
+		console.log(${newString} ${string} ${newString});
 	}
-	return '${string}';`);
+	return ${newString} ${string} ${newString};`);
 
 	//takes the index number of end delimeters if any
-	if(endDelim && endDelim !== startDelim){
+	if(stop && stop !== start){
 		for(let i = 0; i <= matches.length-1; i++ ){
 
-			const match = string.indexOf(endDelim, matches[i] + 1);
+			const match = string.indexOf(stop, matches[i] + 1);
 			if(match === -1 ) break;
 			endMatches.push(match);
 		}
@@ -48,27 +47,27 @@ const templatingEngine = (string, startDelim = '|', endDelim) => {
 	//uses delimeter's index to retrieve text content for variables and arguments
 	for(let i = 0; i <= matches.length-1; i++ ){
 
-		if(!endDelim || endDelim === startDelim){
-			let customString = string.slice(matches[i] + startDelim.length, matches[i+1]);
+		if(!stop || stop === start){
+			let customString = string.slice(matches[i] + start.length, matches[i+1]);
 			//take the string before the start delimeter and between similar delimeter
 			newString += string.slice(startIndex, matches[i]) + "${" + customString + "}";
 			//check the custom string for any . and remove any if found
 			if(customString.indexOf('.') > -1)	customString = customString.slice(0, customString.indexOf('.'));
 			//trim custom string for use as an argument
 			stringsToInterpolate.push(customString.trim());
-			startIndex = matches[i+1] + startDelim.length;
+			startIndex = matches[i+1] + start.length;
 			i += 1;
 
 		}else{
 
-			let customString = string.slice(matches[i] + startDelim.length, endMatches[i]);
+			let customString = string.slice(matches[i] + start.length, endMatches[i]);
 			//take the string before the start delimeter and between disimilar delimeter
 			newString += string.slice(startIndex, matches[i]) + "${" + customString + "}";
 			//check the custom string for any . and remove any if found
 			if(customString.indexOf('.') > -1)	customString = customString.slice(0, customString.indexOf('.'));
 			//trim custom string for use as an argument
 			stringsToInterpolate.push(customString.trim());
-			startIndex = endMatches[i] + endDelim.length;
+			startIndex = endMatches[i] + stop.length;
 
 		}
 		//when the final delimeter has been reached grab all the
@@ -91,10 +90,10 @@ const templatingEngine = (string, startDelim = '|', endDelim) => {
 		console.log(${newString});
 	}
 	return ${newString};`);
-}
+};
 
 //Event Management System
- class EventTracker {
+  class EventTracker {
  	constructor(name){
  		this.name= name;
  	}
@@ -162,7 +161,7 @@ const templatingEngine = (string, startDelim = '|', endDelim) => {
  			this._notify = {};
  			create();
  		};
- 		this._notify ?  this.notify[event] ? update() : create() : setUp();
+ 		this._notify ?  this._notify[event] ? update() : create() : setUp();
  		
  	}
 
@@ -170,8 +169,8 @@ const templatingEngine = (string, startDelim = '|', endDelim) => {
  		//loops through the event and call the functions attached to that event
  		//check the notify property for any object to be notified of this event
  		//notify them;
- 		if(typeof(event) !== 'string' || !this._events || !this._events[event]) return;
- 		this._events[event].forEach((callback) => callback(...data));
+ 		if(typeof(event) !== 'string') return;
+ 		if(this._events && this._events[event]) this._events[event].forEach((callback) => callback.call(this,...data));
  		if(this._notify && this._notify[event]) this._notify[event].forEach((obj) => obj.trigger(event));
  	}
  }
